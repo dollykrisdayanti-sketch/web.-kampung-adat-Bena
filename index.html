@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypermedia Kampung Adat Bena - Warisan Budaya NTT</title>
+    <!-- Library PDF.js untuk merender PDF langsung di browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a1a1a;
+            --secondary: #f4f4f4;
+            --accent: #c0392b;
+            --text: #111;
+            --bg: #fff;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        nav button {
+            background: none;
+            border: 2px solid white;
+            color: white;
+            padding: 0.5rem 1rem;
+            margin: 0.2rem;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        nav button:hover, nav button.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+        .breadcrumb {
+            padding: 1rem;
+            background-color: #eee;
+            font-size: 0.9rem;
+            border-bottom: 2px solid #ccc;
+        }
+        .breadcrumb span {
+            cursor: pointer;
+            color: var(--accent);
+            text-decoration: underline;
+        }
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: auto;
+            min-height: 60vh;
+        }
+        .hero {
+            position: relative;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .hero img { width: 100%; height: 400px; object-fit: cover; display: block; }
+        .hero-text {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.7); color: white; padding: 1.5rem;
+        }
+        .hero-text h2 { margin: 0 0 0.5rem 0; font-size: 2rem; }
+        .filter-bar {
+            display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+        }
+        .filter-btn {
+            background-color: #eee; color: var(--text);
+            border: 2px solid #ccc; padding: 0.5rem 1rem;
+            border-radius: 20px; cursor: pointer;
+            font-weight: bold; transition: 0.3s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background-color: var(--accent); color: white; border-color: var(--accent);
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        .gallery-item {
+            position: relative; border-radius: 8px; overflow: hidden;
+            cursor: pointer; height: 220px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .gallery-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .gallery-item img {
+            width: 100%; height: 100%; object-fit: cover; transition: 0.3s;
+        }
+        .gallery-item:hover img { filter: brightness(0.7); }
+        .gallery-caption {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            color: white; padding: 1rem 0.8rem 0.5rem 0.8rem;
+            font-weight: bold; font-size: 0.95rem;
+        }
+        .lightbox {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            justify-content: center; align-items: center;
+            z-index: 2000; flex-direction: column;
+            padding: 2rem; box-sizing: border-box;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 90%; max-height: 65vh;
+            border-radius: 8px; border: 3px solid white;
+        }
+        .lightbox-info {
+            color: white; text-align: center;
+            margin-top: 1rem; max-width: 700px;
+        }
+        .lightbox-info h3 { margin: 0.5rem 0; color: #ffcc00; }
+        .lightbox-close {
+            position: absolute; top: 20px; right: 30px;
+            font-size: 2.5rem; color: white; cursor: pointer; font-weight: bold;
+        }
+        .lightbox-close:hover { color: var(--accent); }
+        .lightbox-nav {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 3rem; color: white; cursor: pointer;
+            padding: 1rem; user-select: none;
+        }
+        .lightbox-nav:hover { color: var(--accent); }
+        .lightbox-prev { left: 20px; }
+        .lightbox-next { right: 20px; }
+        .info-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem; margin-top: 1.5rem;
+        }
+        .info-card {
+            border: 2px solid #ccc; border-radius: 8px; overflow: hidden;
+            display: flex; flex-direction: column; background: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .info-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .info-card img { width: 100%; height: 200px; object-fit: cover; }
+        .info-card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .kamus-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .kamus-table th, .kamus-table td { border: 1px solid #ccc; padding: 0.8rem; text-align: left; }
+        .kamus-table th { background-color: var(--primary); color: white; }
+        .kamus-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .map-container {
+            width: 100%; height: 450px; border: 2px solid #ccc;
+            border-radius: 8px; overflow: hidden; margin-top: 1rem;
+        }
+        .map-container iframe { width: 100%; height: 100%; border: none; }
+        
+        /* Gaya Kontainer Penampil PDF */
+        .pdf-wrapper {
+            background-color: #525659;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 300px;
+            max-height: 800px;
+            overflow-y: auto;
+            text-align: center;
+        }
+        .pdf-canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .pdf-canvas-container canvas {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            max-width: 100%;
+            height: auto !important;
+            background: white;
+        }
+
+        .btn-action {
+            background-color: var(--accent); color: white; border: none;
+            padding: 0.7rem 1.2rem; border-radius: 4px; cursor: pointer;
+            font-weight: bold; margin-top: 0.5rem; display: inline-block;
+            text-decoration: none; text-align: center;
+        }
+        .btn-action:hover { background-color: #a93226; }
+        .home-btn-container { text-align: center; margin: 2rem 0; }
+        .home-btn {
+            background-color: var(--primary); color: white;
+            padding: 1rem 2rem; border: none; border-radius: 50px;
+            font-size: 1.1rem; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.8);
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 8px;
+            max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
+        }
+        .modal-content ul { list-style-type: none; padding: 0; }
+        .modal-content li {
+            padding: 0.5rem 0; border-bottom: 1px solid #eee;
+            cursor: pointer; color: var(--accent); font-weight: bold;
+        }
+        .modal-content li:hover { text-decoration: underline; }
+        .close-modal { float: right; cursor: pointer; font-weight: bold; color: red; font-size: 1.5rem; }
+        .ai-box {
+            background-color: #f9f9f9; border-left: 5px solid var(--accent);
+            padding: 1rem; margin-top: 1.5rem; border-radius: 0 8px 8px 0;
+        }
+
+        /* Styling Khusus Bagian Profil Lengkap */
+        .profil-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+        }
+        .profil-card {
+            background: #fff;
+            padding: 1.8rem;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .profil-card h3 {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.4rem;
+            margin-top: 0;
+            font-size: 1.35rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .profil-card p, .profil-card ul {
+            color: #333;
+            line-height: 1.7;
+            margin-bottom: 0.8rem;
+        }
+        .profil-card ul {
+            padding-left: 1.2rem;
+        }
+        .profil-card li {
+            margin-bottom: 0.5rem;
+        }
+        .suku-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+        .suku-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary);
+            padding: 0.8rem 1rem;
+            border-radius: 4px;
+        }
+        .suku-card strong {
+            color: var(--accent);
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+        .highlight-box {
+            background: #fdf2e9;
+            border: 1px solid #f5c6cb;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Kampung Adat Bena</h1>
+        <nav id="main-nav">
+            <button onclick="navigate('home')" class="active">Home</button>
+            <button onclick="navigate('profil')">Profil</button>
+            <button onclick="navigate('galeri')">Galeri</button>
+            <button onclick="navigate('bahasa')">Bahasa</button>
+            <button onclick="navigate('peta')">Peta</button>
+            <button onclick="navigate('laporan')">Laporan PDF</button>
+            <button onclick="openSitemap()" style="border-color: yellow; color: yellow;">Sitemap</button>
+        </nav>
+    </header>
+
+    <div class="breadcrumb" id="breadcrumb">Beranda</div>
+    <main id="content"></main>
+
+    <div class="home-btn-container">
+        <button class="home-btn" onclick="navigate('home')">🏠 Kembali ke Beranda</button>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <span class="lightbox-nav lightbox-prev" onclick="changePhoto(-1)">&#10094;</span>
+        <img id="lightbox-img" src="" alt="Foto Galeri">
+        <span class="lightbox-nav lightbox-next" onclick="changePhoto(1)">&#10095;</span>
+        <div class="lightbox-info">
+            <h3 id="lightbox-title"></h3>
+            <p id="lightbox-desc"></p>
+            <button class="btn-action" onclick="playAudio(document.getElementById('lightbox-desc').innerText)">🔊 Dengarkan Deskripsi AI</button>
+        </div>
+    </div>
+
+    <!-- SITEMAP -->
+    <div id="sitemap-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeSitemap()">&times;</span>
+            <h2>Peta Situs (Sitemap)</h2>
+            <ul>
+                <li onclick="closeSitemap(); navigate('home');">🏠 Beranda</li>
+                <li onclick="closeSitemap(); navigate('profil');">🏛️ Profil Kampung Bena</li>
+                <li onclick="closeSitemap(); navigate('galeri');">🖼️ Galeri Kampung Bena</li>
+                <li onclick="closeSitemap(); navigate('bahasa');">🗣️ Modul Bahasa Ngada</li>
+                <li onclick="closeSitemap(); navigate('peta');">🗺️ Peta Interaktif & SIG</li>
+                <li onclick="closeSitemap(); navigate('laporan');">📄 Laporan Proyek Mini OBE (PDF)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Nama file PDF Laporan Kelompok 2
+        const pdfPath = "Laporan_Proyek_Mini_OBE_Kampung_Adat_Bena_Kelompok_2.pdf";
+
+        // DATA GALERI
+        const galeriData = [
+            {
+                id: 1, kategori: "arsitektur",
+                judul: "Ngadhu & Bhaga - Simbol Leluhur Bena",
+                img: "gambar/ngadhu.jpg",
+                fallback: "https://encrypted-tbn2.gstatic.com/licensed-image?q=tbn:ANd9GcQHV0PCY6ZHf_HrqtEMdI1u6xFKBzEcnXGX9l6t-PcHez5WBrt7YQ3H3EVgXYLUo5sNXjGS3C44Wsdm9BI",
+                deskripsi: "Ngadhu (payung kayu bertopeng) melambangkan leluhur laki-laki, sedangkan Bhaga (rumah panggung mini) melambangkan leluhur perempuan suku Bena."
+            },
+            {
+                id: 2, kategori: "arsitektur",
+                judul: "Arsitektur Rumah Adat Berundak Kampung Bena",
+                img: "gambar/bhaga.jpg",
+                fallback: "https://encrypted-tbn2.gstatic.com/licensed-image?q=tbn:ANd9GcTKm7TcMOw4ePvAlE7SGtialsqIvVl0QxnD30X4FOkZilz0mC97keY6gUB_3Sn17Gx_dIyWdmF3LhPW1qI",
+                deskripsi: "Tata ruang Kampung Bena membentang memanjang di atas bukit berundak dengan atap ijuk tradisional dan tatanan batu megalitikum di tengah kampung."
+            },
+            {
+                id: 3, kategori: "alam",
+                judul: "Gunung Inerie - Latar Sakral Kampung Bena",
+                img: "gambar/gunung-inerie.jpg",
+                fallback: "https://encrypted-tbn2.gstatic.com/licensed-image?q=tbn:ANd9GcTKm7TcMOw4ePvAlE7SGtialsqIvVl0QxnD30X4FOkZilz0mC97keY6gUB_3Sn17Gx_dIyWdmF3LhPW1qI",
+                deskripsi: "Gunung Inerie berdiri megah di latar belakang Kampung Bena, dipercaya oleh masyarakat Ngada sebagai tempat bersemayamnya para dewa dan leluhur."
+            },
+            {
+                id: 4, kategori: "budaya",
+                judul: "Tari Ja'i - Tarian Massal Khas Ngada",
+                img: "gambar/tari-jai.jpg",
+                fallback: "https://ik.trn.asia/uploads/2021/11/1635742711205.jpeg",
+                deskripsi: "Tari Ja'i dilaksanakan secara massal penuh semangat kegembiraan sebagai ungkapan syukur dan rasa persaudaraan dalam upacara adat Reba."
+            },
+            {
+                id: 5, kategori: "budaya",
+                judul: "Kain Tenun Ikat Khas Ngada",
+                img: "gambar/tenun.jpg",
+                fallback: "https://tse4.mm.bing.net/th/id/OIP.UmmmpBU_x22XyheRr0L5zQHaFj?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+                deskripsi: "Kain Tenun Ikat khas Ngada diproduksi secara tradisional oleh wanita Kampung Bena dengan warna dominan biru-putih dan motif bermakna spiritual."
+            }
+        ];
+
+        let currentLightboxIndex = 0;
+        let activeFilter = 'all';
+
+        // Fungsi Memuat dan Merender File PDF menggunakan PDF.js
+       function renderPDF() {
+    const container = document.getElementById('pdf-container');
+    if (!container) return;
+
+    container.innerHTML = '<p style="color: white; padding: 1rem;">Sedang memuatkan dokumen PDF...</p>';
+
+    // Set pautan worker PDF.js
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    pdfjsLib.getDocument(pdfPath).promise.then(pdf => {
+        container.innerHTML = ''; // Bersihkan pesanan memuatkan
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            pdf.getPage(pageNum).then(page => {
+                const viewport = page.getViewport({ scale: 1.5 });
+                
+                const canvas = document.createElement('canvas');
+                canvas.style.display = 'block';
+                canvas.style.margin = '10px auto';
+                canvas.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+                
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                container.appendChild(canvas);
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                
+                page.render(renderContext);
+            });
+        }
+    }).catch(error => {
+        console.error("Gagal memuatkan PDF:", error);
+        container.innerHTML = `
+            <div style="padding: 2rem; color: white; text-align: center;">
+                <p>Gagal memuatkan laporan PDF secara automatik.</p>
+                <a href="${pdfPath}" target="_blank" class="btn-action" style="background-color: #27ae60; text-decoration: none; padding: 0.8rem 1.5rem; display: inline-block; color: white; border-radius: 4px;">
+                    📥 Buka / Unduh File PDF Laporan
+                </a>
+            </div>
+        `;
+    });
+}
+        // Navigasi Halaman Utama
+        function navigate(page) {
+            const content = document.getElementById('content');
+            const breadcrumb = document.getElementById('breadcrumb');
+            
+            document.querySelectorAll('#main-nav button').forEach(btn => btn.classList.remove('active'));
+            const currentBtn = Array.from(document.querySelectorAll('#main-nav button')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(page));
+            if(currentBtn) currentBtn.classList.add('active');
+
+            if (page === 'home') {
+                breadcrumb.innerHTML = 'Beranda';
+                content.innerHTML = `
+                    <div class="hero">
+                        <img src="${galeriData[2].fallback}" onerror="this.src='${galeriData[2].fallback}'" alt="Kampung Adat Bena">
+                        <div class="hero-text">
+                            <h2>Selamat Datang di Kampung Adat Bena</h2>
+                            <p>Peradaban Megalitikum yang Masih Hidup di Bawah Kaki Gunung Inerie, Kabupaten Ngada, Flores, NTT.</p>
+                        </div>
+                    </div>
+                    <div class="ai-box">
+                        <h3>🌿 Warisan Budaya & Tradisi Megalitikum</h3>
+                        <p>Kampung Adat Bena adalah perkampungan megalitikum tertua yang masih lestari di Flores, Nusa Tenggara Timur. Terdiri dari 9 suku adat yang menjaga keharmonisan alam, tradisi leluhur, tata ruang berundak, dan bangunan sakral Ngadhu serta Bhaga.</p>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <img src="${galeriData[0].fallback}" alt="Ngadhu dan Bhaga Kampung Bena">
+                            <div class="info-card-body">
+                                <h3>Profil Lengkap & Sejarah</h3>
+                                <p>Pelajari sejarah, letak geografis, 9 klan suku, arsitektur berundak, serta simbolisme sakral Bena.</p>
+                                <button class="btn-action" onclick="navigate('profil')">Buka Profil Lengkap</button>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <img src="${galeriData[3].fallback}" alt="Tari Ja'i dan Kebudayaan Ngada">
+                            <div class="info-card-body">
+                                <h3>Seni & Tradisi Budaya</h3>
+                                <p>Mengenal Tarian Ja'i massal, upacara syukuran tahunan Reba, dan tenun ikat khas suku Ngada.</p>
+                                <button class="btn-action" onclick="navigate('bahasa')">Lihat Modul Bahasa & Budaya</button>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <img src="${galeriData[1].fallback}" alt="Laporan Proyek Mini OBE Kampung Bena">
+                            <div class="info-card-body">
+                                <h3>Laporan Proyek Mini OBE</h3>
+                                <p>Pelajari Dokumen Laporan Perancangan Hypermedia Interaktif Portal Informasi Kampung Bena (Kelompok 2).</p>
+                                <button class="btn-action" onclick="navigate('laporan')">Buka Laporan PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (page === 'profil') {
+                breadcrumb.innerHTML = '<span onclick="navigate(\'home\')">Beranda</span> &gt; Profil Kampung Bena';
+                content.innerHTML = `
+                    <h2>Profil Lengkap Kampung Adat Bena</h2>
+                    <p style="font-size: 1.1rem; color: #555; margin-bottom: 2rem;">
+                        Kampung Adat Bena adalah salah satu warisan peradaban megalitikum tertua di Indonesia yang masih terpelihara secara utuh. Terletak di Flores, perkampungan ini memadukan nilai kebudayaan, spiritualitas kosmologis, dan keharmonisan alam.
+                    </p>
+
+                    <div class="profil-container">
+                        <div class="profil-card">
+                            <h3>📍 1. Geografi & Orientasi Kosmologis</h3>
+                            <p><b>Lokasi Administratif:</b> Desa Tiwuriwu, Kecamatan Jerebuu, Kabupaten Ngada, Nusa Tenggara Timur (NTT).</p>
+                            <p><b>Topografi & Ketinggian:</b> Berada pada ketinggian ±780 meter di atas permukaan laut (mdpl) tepat di lereng barat Gunung Inerie.</p>
+                            <p><b>Orientasi Sakral:</b> Pemukiman Bena membentang dari utara ke selatan. Ujung utara yang berada di tempat lebih tinggi mengarah ke puncak **Gunung Inerie** (dianggap sebagai tempat bersemayamnya Sang Pencipta/Dewa <i>Yeta</i> & para leluhur), sedangkan ujung selatan mengarah ke laut lepas (Laut Sawu).</p>
+                        </div>
+
+                        <div class="profil-card">
+                            <h3>📜 2. Sejarah & Peradaban Megalitikum</h3>
+                            <p>Kampung Bena diperkirakan telah ada sejak kurun waktu zaman batu besar (Megalitikum), sekitar <b>1.200 tahun lalu</b>. Kata <i>"Bena"</i> diambil dari nama suku pendiri pertama yang mendiami kawasan berbukit ini.</p>
+                            <p>Bena dikategori oleh UNESCO dan para antropolog dunia sebagai <b>"Living Megalithic Museum"</b> (Museum Megalitikum Hidup), karena seluruh struktur sosial, tata arsitektur batu, serta tradisi ritualnya tetap dijalankan oleh masyarakatnya secara turun-temurun hingga saat ini tanpa terputus oleh modernisasi.</p>
+                        </div>
+
+                        <div class="profil-card">
+                            <h3>👨‍👩‍👧‍👦 3. Struktur Sosial & 9 Klan Adat (Woe)</h3>
+                            <p>Masyarakat Kampung Bena terdiri dari <b>9 klan suku adat (<i>Woe</i>)</b> yang hidup berdampingan dalam tatanan hierarki adat secara berundak. Urutan klan dari tingkatan paling bawah hingga puncak teratas adalah sebagai berikut:</p>
+                            
+                            <div class="suku-grid">
+                                <div class="suku-card"><strong>1. Suku Dizi</strong> Teras Bawah</div>
+                                <div class="suku-card"><strong>2. Suku Dizi Azi</strong> Teras Bawah</div>
+                                <div class="suku-card"><strong>3. Suku Soli</strong> Teras Tengah</div>
+                                <div class="suku-card"><strong>4. Suku Ngada</strong> Teras Tengah</div>
+                                <div class="suku-card"><strong>5. Suku Khazi</strong> Teras Tengah</div>
+                                <div class="suku-card"><strong>6. Suku Ago</strong> Teras Tengah</div>
+                                <div class="suku-card"><strong>7. Suku Deru Lalulewa</strong> Teras Atas</div>
+                                <div class="suku-card"><strong>8. Suku Wahtil</strong> Teras Atas</div>
+                                <div class="suku-card"><strong>9. Suku Bena (Pendiri)</strong> Teras Utama Puncak</div>
+                            </div>
+
+                            <div class="highlight-box">
+                                <b>Catatan Adat:</b> Suku Bena berkedudukan sebagai klan pendiri (<i>Pola Bena</i>) yang memegang peranan utama dalam kepemimpinan spiritual dan koordinasi upacara adat seluruh kampung.
+                            </div>
+                        </div>
+
+                        <div class="profil-card">
+                            <h3>📐 4. Tata Ruang Berundak (Lengko) & Arsitektur Sakral</h3>
+                            <p>Kampung Bena dibangun dengan pola berbentuk perahu (<i>lengko</i>) yang memanjang sepanjang ±375 meter dengan kontur tanah berundak-undak (<i>tua</i>). Di tengah-tengah kampung terdapat lapangan terbuka (<i>Leka</i>) tempat berdirinya simbol-simbol sakral adat:</p>
+                            
+                            <ul>
+                                <li><b>Ngadhu (Simbol Pria):</b> Tiang kayu sakral bertopeng mengukir dari kayu besi (<i>Seki</i>) dengan atap ijuk berbentuk payung. Melambangkan kejantanan, kekuatan, wibawa, dan perlindungan klan.</li>
+                                <li><b>Bhaga (Simbol Wanita):</b> Pondok panggung kayu berukuran mini (2x2 meter) beratap ijuk yang melambangkan rahim ibu, kelembutan, pengayoman, dan kesuburan. Tiap suku wajib memiliki pasangan Ngadhu dan Bhaga.</li>
+                                <li><b>Tatanan Batu Megalit (<i>Ngapu & Lengko</i>):</b> Susunan batu pipih altar di tengah kampung yang berfungsi sebagai meja sembahyang, persembahan kurban ritual, dan pemakaman para tokoh adat terdahulu.</li>
+                            </ul>
+
+                            <div class="info-grid">
+                                <div class="info-card">
+                                    <img src="${galeriData[0].fallback}" alt="Ngadhu Kampung Bena">
+                                    <div class="info-card-body">
+                                        <h3>Ngadhu</h3>
+                                        <p>Tiang kayu ukir sakral perlambang leluhur laki-laki suku Bena.</p>
+                                    </div>
+                                </div>
+                                <div class="info-card">
+                                    <img src="${galeriData[1].fallback}" alt="Bhaga Kampung Bena">
+                                    <div class="info-card-body">
+                                        <h3>Bhaga</h3>
+                                        <p>Bangunan panggung miniatur tempat bersemayam leluhur perempuan.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profil-card">
+                            <h3>🛖 5. Anatomi & Konstruksi Rumah Adat (Sa'o)</h3>
+                            <p>Rumah adat di Kampung Bena (<i>Sa'o</i>) dibangun sepenuhnya menggunakan bahan alami: kayu keras, bambu terikat rotan, dan atap ijuk tebal tanpa paku besi. Bangunan terbagi menjadi dua bagian ruang utama:</p>
+                            <ul>
+                                <li><b>Tedda Moa (Teras/Balkon Luar):</b> Bagian terbuka di depan rumah yang digunakan untuk aktivitas sosial harian, menerima tamu, dan tempat para wanita Bena menenun kain tenun ikat.</li>
+                                <li><b>One (Ruang Dalam Sakral):</b> Bagian dalam yang tertutup dan relatif gelap, berfungsi sebagai tempat tidur keluarga, dapur perapian, serta penyimpanan pusaka warisan klan.</li>
+                            </ul>
+                        </div>
+
+                        <div class="profil-card">
+                            <h3>⚖️ 6. Sistem Garis Keturunan Matrilineal</h3>
+                            <p>Masyarakat Ngada di Kampung Bena menganut sistem kekerabatan <b>Matrilineal</b> (garis keturunan ibu). Hal ini trefleksikan dalam kehidupan sehari-hari:</p>
+                            <ul>
+                                <li>Hak milik atas rumah adat (<i>Sa'o</i>), lahan pertanian, dan pusaka suku diturunkan kepada anak perempuan (khususnya anak perempuan tertua).</li>
+                                <li>Pria yang menikah akan tinggal dan bergabung dengan klan keluarga istrinya.</li>
+                                <li>Meskipun garis keturunan ditarik dari ibu, kaum pria memegang peranan kepemimpinan ritual, penjaga benteng adat, serta juru bicara diplomasi antar-suku.</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            } else if (page === 'galeri') {
+                breadcrumb.innerHTML = '<span onclick="navigate(\'home\')">Beranda</span> &gt; Galeri';
+                renderGaleriUI();
+            } else if (page === 'bahasa') {
+                breadcrumb.innerHTML = '<span onclick="navigate(\'home\')">Beranda</span> &gt; Modul Bahasa Ngada';
+                content.innerHTML = `
+                    <h2>Modul Pembelajaran & Tata Bahasa Ngada</h2>
+                    <p style="color: #555; margin-bottom: 1.5rem;">
+                        Bahasa Ngada (<i>Lio-Ngada group</i>) adalah salah satu bahasa daerah di Flores Tengah yang kaya akan tradisi lisan, keunikan tata bahasa monosilabik, serta sistem fonologi berupa konsonan glotal.
+                    </p>
+
+                    <h3>1. Glosarium Istilah Adat & Budaya</h3>
+                    <table class="kamus-table">
+                        <thead>
+                            <tr>
+                                <th>Istilah Lokal</th>
+                                <th>Bahasa Indonesia</th>
+                                <th>Makna Kultural</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>Ngadhu</b></td>
+                                <td>Tiang Leluhur Pria</td>
+                                <td>Simbol kesukuan dan penghormatan pada leluhur laki-laki.</td>
+                            </tr>
+                            <tr>
+                                <td><b>Bhaga</b></td>
+                                <td>Rumah Leluhur Wanita</td>
+                                <td>Simbol rahim, perlindungan, dan penghormatan pada perempuan.</td>
+                            </tr>
+                            <tr>
+                                <td><b>Reba</b></td>
+                                <td>Upacara Adat Utama</td>
+                                <td>Pesta ucapan syukur tahunan masyarakat Ngada atas hasil panen dan kehidupan.</td>
+                            </tr>
+                            <tr>
+                                <td><b>Tari Ja'i</b></td>
+                                <td>Tarian Syukur Massal</td>
+                                <td>Tarian kekeluargaan yang dibawakan beramai-ramai dalam lingkaran.</td>
+                            </tr>
+                            <tr>
+                                <td><b>Sa'o</b></td>
+                                <td>Rumah Adat</td>
+                                <td>Rumah tinggal berarsitektur tradisional bambu, kayu, dan ijuk.</td>
+                            </tr>
+                            <tr>
+                                <td><b>Woe</b></td>
+                                <td>Klan / Suku Adat</td>
+                                <td>Persekutuan keluarga berdasarkan garis keturunan leluhur.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+            } else if (page === 'peta') {
+                breadcrumb.innerHTML = '<span onclick="navigate(\'home\')">Beranda</span> &gt; Peta Interaktif';
+                content.innerHTML = `
+                    <h2>Peta Lokasi Kampung Adat Bena</h2>
+                    <p>Kampung Adat Bena terletak di Desa Tiwuriwu, Kecamatan Jerebuu, Kabupaten Ngada, Nusa Tenggara Timur.</p>
+                    <div class="map-container">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15772.84074213813!2d120.9902636!3d-8.9538356!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2d4cb0fddb69b6db%3A0x8dd087ba6e1b6f0!2sKampung%20Adat%20Bena!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                `;
+            } else if (page === 'laporan') {
+                breadcrumb.innerHTML = '<span onclick="navigate(\'home\')">Beranda</span> &gt; Laporan PDF';
+                content.innerHTML = `
+                    <h2>Dokumen Laporan Proyek Mini OBE (Kelompok 2)</h2>
+                    <a href="${pdfPath}" target="_blank" class="btn-action" style="margin-bottom: 1rem;">📥 Buka/unduh File PDF Laporan</a>
+                    <div class="pdf-wrapper" id="pdf-container"></div>
+                `;
+                renderPDF();
+            }
+        }
+
+        // Render Galeri Gambar
+        function renderGaleriUI() {
+            const content = document.getElementById('content');
+            const filteredData = activeFilter === 'all' ? galeriData : galeriData.filter(item => item.kategori === activeFilter);
+
+            let filterHTML = `
+                <h2>Galeri Foto Kampung Adat Bena</h2>
+                <div class="filter-bar">
+                    <button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">Semua</button>
+                    <button class="filter-btn ${activeFilter === 'arsitektur' ? 'active' : ''}" onclick="setFilter('arsitektur')">Arsitektur</button>
+                    <button class="filter-btn ${activeFilter === 'budaya' ? 'active' : ''}" onclick="setFilter('budaya')">Budaya & Tradisi</button>
+                    <button class="filter-btn ${activeFilter === 'alam' ? 'active' : ''}" onclick="setFilter('alam')">Lanskap Alam</button>
+                </div>
+                <div class="gallery-grid">
+            `;
+
+            filteredData.forEach((item, index) => {
+                filterHTML += `
+                    <div class="gallery-item" onclick="openLightbox(${index})">
+                        <img src="${item.img}" onerror="this.src='${item.fallback}'" alt="${item.judul}">
+                        <div class="gallery-caption">${item.judul}</div>
+                    </div>
+                `;
+            });
+
+            filterHTML += `</div>`;
+            content.innerHTML = filterHTML;
+        }
+
+        function setFilter(cat) {
+            activeFilter = cat;
+            renderGaleriUI();
+        }
+
+        // Fungsi Lightbox Navigasi Foto
+        function openLightbox(index) {
+            const filteredData = activeFilter === 'all' ? galeriData : galeriData.filter(item => item.kategori === activeFilter);
+            currentLightboxIndex = index;
+            const item = filteredData[index];
+
+            document.getElementById('lightbox-img').src = item.img;
+            document.getElementById('lightbox-img').onerror = function() { this.src = item.fallback; };
+            document.getElementById('lightbox-title').innerText = item.judul;
+            document.getElementById('lightbox-desc').innerText = item.deskripsi;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            window.speechSynthesis.cancel();
+        }
+
+        function changePhoto(dir) {
+            const filteredData = activeFilter === 'all' ? galeriData : galeriData.filter(item => item.kategori === activeFilter);
+            currentLightboxIndex += dir;
+            if (currentLightboxIndex < 0) currentLightboxIndex = filteredData.length - 1;
+            if (currentLightboxIndex >= filteredData.length) currentLightboxIndex = 0;
+            openLightbox(currentLightboxIndex);
+        }
+
+        // Fitur Suara / Text-to-Speech
+        function playAudio(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Sitemap Modal Control
+        function openSitemap() {
+            document.getElementById('sitemap-modal').style.display = 'flex';
+        }
+
+        function closeSitemap() {
+            document.getElementById('sitemap-modal').style.display = 'none';
+        }
+
+        // Inisialisasi Halaman Pertama saat Dimuat
+        window.onload = function() {
+            navigate('home');
+        };
+    </script>
+</body>
+</html>
